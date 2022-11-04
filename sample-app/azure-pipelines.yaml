@@ -17,13 +17,15 @@ steps:
     restoreSolution: '$(solution)'
 
 - task: VSBuild@1
+  displayName: Build Application
   inputs:
     solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /P:PackageTempRootDir="" /p:DeployIisAppPath="Default Web Site"'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Filesystem /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /P:PackageTempRootDir="" /p:DeployIisAppPath="Default Web Site"'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
 - task: AzureFileCopy@4
+  displayName: Publishing Artifact
   inputs:
     sourcePath: $(build.artifactStagingDirectory)/WebApp.zip
     azureSubscription: fleetcor
@@ -32,11 +34,13 @@ steps:
     containerName: bookingsapp
 
 - task: AzureCLI@2
-  displayName: Azure CLI
+  displayName: Build VM Image
   inputs:
     azureSubscription: fleetcor
     scriptType: ps
     scriptLocation: inlineScript
     inlineScript: |
+      Write-Host "Deploying Image Template"
       az deployment group create --resource-group fleetcor --template-file bookings-app-vm-template.json --parameters location='brazilsouth' name=bookings-app-$(Build.BuildNumber) identity='image-builder'
+      Write-Host "Building VM Image"
       az resource invoke-action --resource-group fleetcor --resource-type Microsoft.VirtualMachineImages/imageTemplates -n bookings-app-$(Build.BuildNumber) --action Run
