@@ -37,3 +37,9 @@ resource "azurerm_role_assignment" "image_builder_container" {
   role_definition_name = "Storage Blob Data Reader"
   principal_id         = azurerm_user_assigned_identity.image_builder.principal_id
 }
+
+resource "azurerm_role_assignment" "image_builder_container" {
+  scope                = azurerm_storage_account.bookingsapp.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id         = azurerm_user_assigned_identity.image_builder.principal_id
+}

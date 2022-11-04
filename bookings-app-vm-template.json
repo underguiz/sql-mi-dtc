@@ -27,7 +27,10 @@
                 },
             "properties": {
                 "vmProfile": {
-                    "vmSize": "Standard_D4s_v4"
+                    "vmSize": "Standard_D4s_v4",
+                    "userAssignedIdentities": [
+                        "[concat( resourceGroup().id, '/providers/Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('identity'))]"
+                    ]
                 },
                 "source": {
                     "type": "PlatformImage",
@@ -71,6 +74,37 @@
                         "inline": [
                             "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False"
                         ]
+                    },
+                    {
+                        "type": "PowerShell",
+                        "name": "Deploy Artifact",
+                        "runElevated": false,
+                        "inline": [
+                            "Install-PackageProvider -Name Nuget -Force",
+                            "Install-Module -Name Az.Storage -Scope CurrentUser -Repository PSGallery -Force",
+                            "Install-Module -Name Az.Accounts -Scope CurrentUser -Repository PSGallery -Force",
+                            "Connect-AzAccount -Identity",
+                            "$storageAccount = Get-AzStorageAccount -Name bookingsappdsts -ResourceGroupName fleetcor",
+                            "Get-AzStorageBlobContent -Container \"bookingsapp\" -Blob \"WebApp.zip\" -Destination \"C:\\\" -Context $storageAccount.Context",
+                            "Expand-Archive C:\\WebApp.zip -DestinationPath C:\\InetPub\\wwwroot"
+                        ]
+                    },
+                    {
+                        "type": "PowerShell",
+                        "name": "Copy config task",
+                        "runElevated": false,
+                        "inline": [
+                            "$trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30",
+                            "Register-ScheduledJob  -Trigger $trigger -ScriptBlock { Copy-Item C:\\AzureData\\CustomData.bin -Destination C:\\InetPub\\wwwroot\\config } -Name CopyConfig"
+                        ]
+                    },
+                    {
+                        "type": "PowerShell",
+                        "runElevated": true,
+                        "name": "DeprovisioningScript",
+                        "inline": [
+                          "((Get-Content -path C:\\DeprovisioningScript.ps1 -Raw) -replace 'Sysprep.exe /oobe /generalize /quiet /quit','Sysprep.exe /oobe /generalize /quit /mode:vm' ) | Set-Content -Path C:\\DeprovisioningScript.ps1"
+                         ]
                     }
                 ],
                 "distribute": 
