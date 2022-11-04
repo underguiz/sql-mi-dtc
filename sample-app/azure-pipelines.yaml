@@ -20,9 +20,18 @@ steps:
   displayName: Build Application
   inputs:
     solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Filesystem /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /P:PackageTempRootDir="" /p:DeployIisAppPath="Default Web Site"'
+    msbuildArgs: '/p:outDir="$(build.artifactStagingDirectory)\WebApp" /p:Configuration=Release'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+
+- task: ArchiveFiles@2
+  displayName: Create Artifact
+  inputs:
+    rootFolderOrFile: '$(build.artifactStagingDirectory)\WebApp'
+    includeRootFolder: false 
+    archiveType: 'zip'
+    archiveFile: '$(build.artifactStagingDirectory)\WebApp.zip' 
+    replaceExistingArchive: true 
 
 - task: AzureFileCopy@4
   displayName: Publishing Artifact

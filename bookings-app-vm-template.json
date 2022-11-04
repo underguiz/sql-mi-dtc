@@ -86,7 +86,8 @@
                             "Connect-AzAccount -Identity",
                             "$storageAccount = Get-AzStorageAccount -Name bookingsappdsts -ResourceGroupName fleetcor",
                             "Get-AzStorageBlobContent -Container \"bookingsapp\" -Blob \"WebApp.zip\" -Destination \"C:\\\" -Context $storageAccount.Context",
-                            "Expand-Archive C:\\WebApp.zip -DestinationPath C:\\InetPub\\wwwroot"
+                            "Expand-Archive C:\\WebApp.zip -DestinationPath C:\\InetPub\\wwwroot",
+                            "New-Item C:\\InetPub\\wwwroot\\config -Type Directory"
                         ]
                     },
                     {
@@ -95,7 +96,7 @@
                         "runElevated": false,
                         "inline": [
                             "$trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30",
-                            "Register-ScheduledJob  -Trigger $trigger -ScriptBlock { Copy-Item C:\\AzureData\\CustomData.bin -Destination C:\\InetPub\\wwwroot\\config } -Name CopyConfig"
+                            "Register-ScheduledJob  -Trigger $trigger -ScriptBlock { Copy-Item C:\\AzureData\\CustomData.bin -Destination C:\\InetPub\\wwwroot\\config\\connectionStrings.config } -Name CopyConfig"
                         ]
                     },
                     {

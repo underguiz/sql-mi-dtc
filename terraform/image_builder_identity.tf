@@ -13,7 +13,8 @@ resource "azurerm_role_definition" "image_builder_role" {
                     "Microsoft.Compute/galleries/images/versions/write",
                     "Microsoft.Compute/images/write",
                     "Microsoft.Compute/images/read",
-                    "Microsoft.Compute/images/delete" ]
+                    "Microsoft.Compute/images/delete",
+                    "Microsoft.ManagedIdentity/userAssignedIdentities/assign/action" ]
     not_actions = []
   }
 
@@ -38,7 +39,7 @@ resource "azurerm_role_assignment" "image_builder_container" {
   principal_id         = azurerm_user_assigned_identity.image_builder.principal_id
 }
 
-resource "azurerm_role_assignment" "image_builder_container" {
+resource "azurerm_role_assignment" "image_builder_storage" {
   scope                = azurerm_storage_account.bookingsapp.id
   role_definition_name = "Storage Account Contributor"
   principal_id         = azurerm_user_assigned_identity.image_builder.principal_id
