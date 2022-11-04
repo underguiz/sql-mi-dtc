@@ -23,6 +23,14 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
+- task: AzureFileCopy@4
+  inputs:
+    sourcePath: "$(build.artifactStagingDirectory)\WebApp.zip"
+    azureSubscription: fleetcor
+    destination: azureBlob
+    storage: bookingsappdsts
+    containerName: bookingsapp
+
 # - task: VSTest@2
 #   inputs:
 #     platform: '$(buildPlatform)'
