@@ -1,0 +1,90 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+            "location": {
+            "type": "string"
+            },
+            "name": {
+            "type": "string"
+            },
+            "identity": {
+            "type": "string"
+            }
+        },
+    "resources": [
+        {
+            "type": "Microsoft.VirtualMachineImages/imageTemplates",
+            "apiVersion": "2020-02-14",
+            "location": "[parameters('location')]",
+            "name": "[parameters('name')]",
+            "dependsOn": [],
+            "identity": {
+            "type": "UserAssigned",
+                  "userAssignedIdentities": {
+                    "[concat( resourceGroup().id, '/providers/Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('identity'))]": {}
+                }
+                },
+            "properties": {
+                "vmProfile": {
+                    "vmSize": "Standard_D4s_v4"
+                },
+                "source": {
+                    "type": "PlatformImage",
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2022-Datacenter-g2",
+                        "version": "latest"
+                    
+                },
+                "customize": [
+                    {
+                        "type": "PowerShell",
+                        "name": "Enable IIS",
+                        "runElevated": false,
+                        "inline": [
+                            "Install-WindowsFeature -name Web-Server -IncludeManagementTools"
+                        ]
+                    },
+                    {
+                        "type": "PowerShell",
+                        "name": "Enable DTC",
+                        "runElevated": false,
+                        "inline": [
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name DomainControllerState -Value 0",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name LuTransactions -Value 1",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccess -Value 1",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessAdmin -Value 1",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessClients -Value 1",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessInbound -Value 1",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessOutbound -Value 1",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessTip -Value 0",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessTransactions -Value 1",
+                            "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name XaTransactions -Value 1",
+                            "Set-DtcNetworkSetting -DtcName \"Local\" -AuthenticationLevel \"NoAuth\" -Confirm:$false"
+                        ]
+                    },
+                    {
+                        "type": "PowerShell",
+                        "name": "Disable Firewall",
+                        "runElevated": false,
+                        "inline": [
+                            "Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False"
+                        ]
+                    }
+                ],
+                "distribute": 
+                    [
+                        {   "type":"ManagedImage",
+                            "imageId": "[concat( resourceGroup().id, '/providers/Microsoft.Compute/images/', parameters('name'))]",
+                            "location": "[parameters('location')]",
+                            "runOutputName": "[parameters('name')]"
+                        }
+                    ]
+                }
+            }
+    ]
+}
+
+
+
