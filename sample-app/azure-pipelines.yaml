@@ -27,8 +27,8 @@ steps:
 - task: ArchiveFiles@2
   displayName: Create Artifact
   inputs:
-    rootFolderOrFile: '$(build.artifactStagingDirectory)\WebApp'
-    includeRootFolder: false 
+    rootFolderOrFile: '$(build.artifactStagingDirectory)\WebApp\_PublishedWebsites\MSDTCApp'
+    includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(build.artifactStagingDirectory)\WebApp.zip' 
     replaceExistingArchive: true 

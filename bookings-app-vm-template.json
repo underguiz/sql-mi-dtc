@@ -46,7 +46,8 @@
                         "name": "Enable IIS",
                         "runElevated": false,
                         "inline": [
-                            "Install-WindowsFeature -name Web-Server -IncludeManagementTools"
+                            "Install-WindowsFeature -name Web-Server -IncludeManagementTools",
+                            "Enable-WindowsOptionalFeature -Online -FeatureName IIS-ASPNET48"
                         ]
                     },
                     {
@@ -86,6 +87,7 @@
                             "Connect-AzAccount -Identity",
                             "$storageAccount = Get-AzStorageAccount -Name bookingsappdsts -ResourceGroupName fleetcor",
                             "Get-AzStorageBlobContent -Container \"bookingsapp\" -Blob \"WebApp.zip\" -Destination \"C:\\\" -Context $storageAccount.Context",
+                            "Remove-Item C:\\InetPub\\wwwroot\\* -Recurse -Force",
                             "Expand-Archive C:\\WebApp.zip -DestinationPath C:\\InetPub\\wwwroot",
                             "New-Item C:\\InetPub\\wwwroot\\config -Type Directory"
                         ]
