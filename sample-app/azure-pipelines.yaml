@@ -6,10 +6,13 @@ pool:
 
 variables:
 - group: bookings-app
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
-  
+- name: solution
+  value: '**/*.sln'
+- name: buildPlatform
+  value: 'Any CPU'
+- name: buildConfiguration
+  value: 'Release'
+
 steps:
 
 - task: NuGetToolInstaller@1
