@@ -105,15 +105,6 @@
                     },
                     {
                         "type": "PowerShell",
-                        "name": "Copy config task",
-                        "runElevated": false,
-                        "inline": [
-                            "$trigger = New-JobTrigger -AtStartup -RandomDelay 00:00:30",
-                            "Register-ScheduledJob  -Trigger $trigger -ScriptBlock { Copy-Item C:\\AzureData\\CustomData.bin -Destination C:\\InetPub\\wwwroot\\config\\connectionStrings.config } -Name CopyConfig"
-                        ]
-                    },
-                    {
-                        "type": "PowerShell",
                         "runElevated": true,
                         "name": "DeprovisioningScript",
                         "inline": [

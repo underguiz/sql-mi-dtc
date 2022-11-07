@@ -22,10 +22,10 @@ Create the infrastructure.
 _Take note of terraform apply output, you'll need it later._
 ```
 $ cd terraform/
+$ vi database.tfvars # mi instance information
 $ terraform init
-$ terraform plan -var 'bookings-app-rg=<resource_group>'
-$ terraform apply -var 'bookings-app-rg=<resource_group>' 
-$ az aks get-credentials --resource-group <resource_group> --name bookings-app
+$ terraform plan -var 'bookings-app-rg=<resource_group>' -var 'bookings-app-network-rg=<vnet_resource_group>' -var-file='database.tfvars'
+$ terraform apply -var 'bookings-app-rg=<resource_group>' -var 'bookings-app-network-rg=<vnet_resource_group> -var-file='database.tfvars'
 ```
 
 Create each database table from a mssql-tools container:
@@ -50,8 +50,6 @@ $ kubectl delete mssql-tools
 
 Build the bookings-app VM image, this might take some time:
 ```
-$ zip -r msdtcapp.zip sample-app/
-$ az storage blob upload -b <dest_blob> -c <dest_container> --account-name <strg_account> -f msdtcapp.zip
 $ az deployment group create --resource-group <resource_group> --template-file bookings-app-vm-template.json --parameters location='<location>' name='<image_name>' identity='image-builder'
 $ az resource invoke-action --resource-group <resource_group> --resource-type Microsoft.VirtualMachineImages/imageTemplates -n <image_name> --action Run
 ```
