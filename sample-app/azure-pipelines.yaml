@@ -5,14 +5,12 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
+- group: bookings-app
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  group: bookings-app
-
+  
 steps:
-
-- script: echo $(location)
 
 - task: NuGetToolInstaller@1
 
