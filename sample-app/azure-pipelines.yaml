@@ -38,7 +38,7 @@ steps:
   displayName: Publishing Artifact
   inputs:
     sourcePath: $(build.artifactStagingDirectory)/WebApp.zip
-    azureSubscription: ${{ variables.serviceConnection }}
+    azureSubscription: service-connection
     destination: azureBlob
     storage: $(artifactStorageAccount)
     containerName: $(artifactContainer)
@@ -46,7 +46,7 @@ steps:
 - task: AzureCLI@2
   displayName: Build VM Image
   inputs:
-    azureSubscription: ${{ variables.serviceConnection }}
+    azureSubscription: service-connection
     scriptType: ps
     scriptLocation: inlineScript
     inlineScript: |
