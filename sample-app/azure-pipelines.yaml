@@ -37,11 +37,11 @@ steps:
 - task: AzureFileCopy@4
   displayName: Publishing Artifact
   inputs:
-    sourcePath: $(build.artifactStagingDirectory)/WebApp.zip
+    sourcePath: '$(build.artifactStagingDirectory)/WebApp.zip'
     azureSubscription: service-connection
     destination: azureBlob
-    storage: $(artifactStorageAccount)
-    containerName: $(artifactContainer)
+    storage: '$(artifactStorageAccount)'
+    containerName: '$(artifactContainer)'
 
 - task: AzureCLI@2
   displayName: Build VM Image
