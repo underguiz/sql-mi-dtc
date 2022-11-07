@@ -11,6 +11,9 @@ variables:
   group: 'bookings-app'
 
 steps:
+
+- script: echo $(location)
+
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
