@@ -10,6 +10,15 @@
             },
             "identity": {
             "type": "string"
+            },
+            "sqlmi_dns_suffix": {
+                "type": "string"
+            },
+            "artifact_storage_account": {
+                "type": "string"
+            },
+            "artifact_container": {
+                "type": "string"
             }
         },
     "resources": [
@@ -47,7 +56,7 @@
                         "runElevated": false,
                         "inline": [
                             "Install-WindowsFeature -name Web-Server -IncludeManagementTools",
-                            "Enable-WindowsOptionalFeature -Online -FeatureName IIS-ASPNET48"
+                            "Install-WindowsFeature -name Web-Asp-Net45"
                         ]
                     },
                     {
@@ -65,7 +74,9 @@
                             "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessTip -Value 0",
                             "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name NetworkDtcAccessTransactions -Value 1",
                             "Set-ItemProperty -Path HKLM:\\Software\\Microsoft\\MSDTC\\Security -Name XaTransactions -Value 1",
-                            "Set-DtcNetworkSetting -DtcName \"Local\" -AuthenticationLevel \"NoAuth\" -Confirm:$false"
+                            "Set-DtcNetworkSetting -DtcName \"Local\" -AuthenticationLevel \"NoAuth\" -Confirm:$false",
+                            "[concat('$list = (Get-DnsClientGlobalSetting).SuffixSearchList += ','\"',parameters('sqlmi_dns_suffix'),'\"')]",
+                            "Set-DnsClientGlobalSetting -SuffixSearchList $list"
                         ]
                     },
                     {
@@ -85,8 +96,8 @@
                             "Install-Module -Name Az.Storage -Scope CurrentUser -Repository PSGallery -Force",
                             "Install-Module -Name Az.Accounts -Scope CurrentUser -Repository PSGallery -Force",
                             "Connect-AzAccount -Identity",
-                            "$storageAccount = Get-AzStorageAccount -Name bookingsappdsts -ResourceGroupName fleetcor",
-                            "Get-AzStorageBlobContent -Container \"bookingsapp\" -Blob \"WebApp.zip\" -Destination \"C:\\\" -Context $storageAccount.Context",
+                            "[concat('$storageAccount = Get-AzStorageAccount -Name ',parameters('artifact_storage_account'),' -ResourceGroupName ',resourceGroup().name)]",
+                            "[concat('Get-AzStorageBlobContent -Container ','\"',parameters('artifact_container'),'\"',' -Blob \"WebApp.zip\" -Destination \"C:\\\" -Context $storageAccount.Context')]",
                             "Remove-Item C:\\InetPub\\wwwroot\\* -Recurse -Force",
                             "Expand-Archive C:\\WebApp.zip -DestinationPath C:\\InetPub\\wwwroot",
                             "New-Item C:\\InetPub\\wwwroot\\config -Type Directory"

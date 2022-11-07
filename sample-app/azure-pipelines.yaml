@@ -8,6 +8,7 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  group: 'bookings-app'
 
 steps:
 - task: NuGetToolInstaller@1
@@ -37,19 +38,19 @@ steps:
   displayName: Publishing Artifact
   inputs:
     sourcePath: $(build.artifactStagingDirectory)/WebApp.zip
-    azureSubscription: fleetcor
+    azureSubscription: $(serviceConnection)
     destination: azureBlob
-    storage: bookingsappdsts
-    containerName: bookingsapp
+    storage: $(artifactStorageAccount)
+    containerName: $(artifactContainer)
 
 - task: AzureCLI@2
   displayName: Build VM Image
   inputs:
-    azureSubscription: fleetcor
+    azureSubscription: $(serviceConnection)
     scriptType: ps
     scriptLocation: inlineScript
     inlineScript: |
       Write-Host "Deploying Image Template"
-      az deployment group create --resource-group fleetcor --template-file bookings-app-vm-template.json --parameters location='brazilsouth' name=bookings-app-$(Build.BuildNumber) identity='image-builder'
+      az deployment group create --resource-group $(resourceGroup) --template-file bookings-app-vm-template.json --parameters location=$(location) name=bookings-app-$(Build.BuildNumber) identity=$(managedIdentity) sqlmi_dns_suffix=$(sqlDnsSuffix) artifact_storage_account=$(artifactStorageAccount) artifact_container=$(artifactContainer)
       Write-Host "Building VM Image"
       az resource invoke-action --resource-group fleetcor --resource-type Microsoft.VirtualMachineImages/imageTemplates -n bookings-app-$(Build.BuildNumber) --action Run
