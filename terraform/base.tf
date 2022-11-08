@@ -29,9 +29,18 @@ variable "bookings-app-subnet" {
   default = "apps"
 }
 
+variable "bookings-appgw-subnet" {
+  type    = string
+  default = "appgw"
+}
+
 variable "bookings-app-network-rg" {
   type    = string
   default = "bookings-app"
+}
+
+variable "vmss-image-id" {
+  type    = string
 }
 
 data "azurerm_resource_group" "bookings-app" {
@@ -49,12 +58,19 @@ data "azurerm_subnet" "app" {
   resource_group_name  = var.bookings-app-network-rg
 }
 
+data "azurerm_subnet" "appgw" {
+  name                 = var.bookings-appgw-subnet
+  virtual_network_name = var.bookings-app-network
+  resource_group_name  = var.bookings-app-network-rg
+}
+
 output "storage_account" {
   value       = azurerm_storage_account.bookingsapp.name
   description = "Storage Account"
 }
 
-output "storage_account_container" {
-  value       = azurerm_storage_container.bookingsapp.name
-  description = "Storage Account Container"
+output "application_url" {
+  value       = "http://${azurerm_public_ip.frontend-appgw.ip_address}/trip/create"
+  description = "Application URL"
 }
+

@@ -66,4 +66,4 @@ steps:
     scriptType: ps
     scriptLocation: inlineScript
     inlineScript: |
-      az vmss update --name $(vmssName) --resource-group $(resourceGroup) --set virtualMachineProfile.storageProfile.imageReference.id=/subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroup)/providers/Microsoft.VirtualMachineImages/imageTemplates/bookings-app-$(Build.BuildNumber)
+      az vmss update --name $(vmssName) --resource-group $(resourceGroup) --set virtualMachineProfile.storageProfile.imageReference.id=/subscriptions/$(subscriptionId)/resourceGroups/$(resourceGroup)/providers/Microsoft.Compute/images/bookings-app-$(Build.BuildNumber)

@@ -1,82 +1,83 @@
-bookings
-R7BGks9A7QePNTaS
-
 ## About
 
- This repository showcases the use of [Elastic Transactions](https://docs.microsoft.com/en-us/azure/azure-sql/database/elastic-transactions-overview?view=azuresql) in an Azure
- SQL Database, that allows an application to run transactions against several databases without the need to use MSDTC which can be trick, specially with containers.
+ This repository showcases the use of [MSDTC](https://en.wikipedia.org/wiki/Microsoft_Distributed_Transaction_Coordinator) in an Azure
+ SQL Managed Instance, that allows an application to run transactions against several databases, for scenarios where [Elastic Transactions](https://learn.microsoft.com/en-us/azure/azure-sql/database/elastic-transactions-overview?view=azuresql) are not supported.
 
- The sample app is a .net framework application that runs on Windows nodes on AKS. It's a Flight and Hotel Booking application that spans a transaction over two SQL Databases using [System.Transactions](https://docs.microsoft.com/en-us/dotnet/api/system.transactions?view=net-6.0) coordinated by [Azure SQL Database](https://docs.microsoft.com/en-us/azure/azure-sql/database/sql-database-paas-overview?view=azuresql) instead of MSDTC. 
+ The sample app is a .net framework application that runs on a Virtual Machine Scale Set. It's a Flight and Hotel Booking application that spans a transaction over two SQL Databases using [System.Transactions](https://docs.microsoft.com/en-us/dotnet/api/system.transactions?view=net-6.0) (see [MakeReservation.cs](sample-app/MSDTCApp/DataAccessRepository/MakeReservation.cs)).
 
+ _This project assumes you already have an existing environment with a working SQL MI instance with DTC enabled and configured. Hotel and Flight Databases must be created using the provided .sql scripts._
 
 ### Architecture
 
-This architecture uses Azure Managed Services ([Paas](https://azure.microsoft.com/en-us/resources/cloud-computing-dictionary/what-is-paas/)) exclusively, allowing you to move away from traditional IIS and SQL Server Virtual Machines and the operational burden that comes with it.
+This architecture uses Azure SQL Managed Instance with DTC support enabled as its database and a Virtual Machine Scale Set as its application backend.
 
-![Architecture](Elastic-Transactions.png)
+The goal of the architeture is to minimize operational burden by using Terraform, Azure DevOps and Azure Image Builder to create [immutable VM images and infrastructure](https://learn.microsoft.com/en-us/archive/msdn-magazine/2017/october/cloud-development-building-better-cloud-deployments-5-steps-to-immutability) and deploy them in an automated way on a VMSS. That way, if a given release is not working as expected, one can simple revert the ```virtualMachineProfile.storageProfile.imageReference.id``` of the VMSS to bring the environment back to a working condition.
+
+Network Connectivity:
+
+![Architecture](images/sqlmi-dtc.png)
+
+Architecture: 
+
+![Architecture](images/architecture.drawio.png)
 
 ### Usage
 
-Create the infrastructure. 
+Create the base infrastructure need by Azure Image Builder and Azure DevOps. 
 
 _Take note of terraform apply output, you'll need it later._
 ```
 $ cd terraform/
-$ vi database.tfvars # mi instance information
+$ vi variables.tfvars # existing environment information
 $ terraform init
-$ terraform plan -var 'bookings-app-rg=<resource_group>' -var 'bookings-app-network-rg=<vnet_resource_group>' -var-file='database.tfvars'
-$ terraform apply -var 'bookings-app-rg=<resource_group>' -var 'bookings-app-network-rg=<vnet_resource_group> -var-file='database.tfvars'
+$ terraform plan -var-file='variables.tfvars' \
+-target azurerm_role_assignment.image_builder_storage \
+-target azurerm_role_assignment.image_builder_container \
+-target azurerm_role_assignment.image_builder_rg
+$ terraform apply -var-file='variables.tfvars' \
+-target azurerm_role_assignment.image_builder_storage \
+-target azurerm_role_assignment.image_builder_container \
+-target azurerm_role_assignment.image_builder_rg
 ```
 
-Create each database table from a mssql-tools container:
-```
-$ kubectl run -it mssql-tools --image=mcr.microsoft.com/mssql-tools --overrides='{"spec": { "nodeSelector": {"kubernetes.io/os": "linux"}}}' -- /bin/bash
-```
+[Import this project](https://learn.microsoft.com/en-us/azure/devops/repos/git/import-git-repository?view=azure-devops) into Azure DevOps and create [variable group](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml) for the build pipeline, changing the values accordingly to your environment. 
 
-From another session, copy the scripts to the mssql-tools container:
-```
-$ cd ../
-$ kubectl cp create-flight-table.sql mssql-tools:/tmp
-$ kubectl cp create-hotel-table.sql mssql-tools:/tmp
-```
+![Variable Groups](images/variable-groups.png)
 
-Run the scripts:
-```
-# sqlcmd -S <sql_server_fqdn> -U bookingsapp -d Flight -i /tmp/create-flight-table.sql
-# sqlcmd -S <sql_server_fqdn> -U bookingsapp -d Hotel -i /tmp/create-hotel-table.sql
-# exit
-$ kubectl delete mssql-tools
-```
+Create a service connection named ```service-connection```.
 
-Build the bookings-app VM image, this might take some time:
-```
-$ az deployment group create --resource-group <resource_group> --template-file bookings-app-vm-template.json --parameters location='<location>' name='<image_name>' identity='image-builder'
-$ az resource invoke-action --resource-group <resource_group> --resource-type Microsoft.VirtualMachineImages/imageTemplates -n <image_name> --action Run
-```
+![Service Connection](images/service-connection.png)
 
-Get the Ingress IP Address and access it from a web browser (http://ip_address/trip/create).
-```
-$ kubectl get ingress bookings-app-ingress
-```
+Create a build pipeline from the ```sample-app/azure-pipelines.yaml``` definition.
 
-From the mssql-tools pod, query the Hotel and Flight databases to see that the information was added to both databases.
+![Add Pipeline](images/add-pipeline.png)
+
+Run the pipeline.
+
+![Review Pipeline](images/review-pipeline.png)
+
+_The first run will fail on the Update VMSS Image step since this resource is yet to be created._
+
+Create the infrastructure.
 
 ```
-$ kubectl attach -ti mssql-tools
-# sqlcmd -S <sql_server_fqdn> -U bookingsapp -d Flight
-1 > select * from Flight
-2 > go
-1 > exit
-# sqlcmd -S <sql_server_fqdn> -U bookingsapp -d Hotel
-1 > select * from Hotel
-2 > go
-1 > exit
+$ vi variables.tfvars # set the vmss-image-id created by Azure Image Builder
+$ terraform plan -var-file='variables.tfvars'
+$ terraform apply -var-file='variables.tfvars'
 ```
+
+Get the application url from terraform's output and open it in your browser.
 
 ### Docs
 
-https://docs.microsoft.com/en-us/azure/azure-sql/database/elastic-transactions-overview?view=azuresql
+https://en.wikipedia.org/wiki/Microsoft_Distributed_Transaction_Coordinator
 
-https://azure.microsoft.com/en-us/blog/elastic-database-transactions-with-azure-sql-database/
+https://learn.microsoft.com/en-us/archive/msdn-magazine/2017/october/cloud-development-building-better-cloud-deployments-5-steps-to-immutability
 
 https://docs.microsoft.com/en-us/dotnet/api/system.transactions?view=net-6.0
+
+https://learn.microsoft.com/en-us/azure/devops/repos/git/import-git-repository?view=azure-devops
+
+https://learn.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml
+
+https://learn.microsoft.com/en-us/azure/virtual-machines/image-builder-overview?tabs=azure-cli
