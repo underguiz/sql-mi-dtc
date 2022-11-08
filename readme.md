@@ -40,7 +40,7 @@ $ terraform apply -var-file='variables.tfvars' \
 -target azurerm_role_assignment.image_builder_rg
 ```
 
-[Import this project](https://learn.microsoft.com/en-us/azure/devops/repos/git/import-git-repository?view=azure-devops) into Azure DevOps and create [variable group](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml) for the build pipeline, changing the values accordingly to your environment. 
+[Import this project](https://learn.microsoft.com/en-us/azure/devops/repos/git/import-git-repository?view=azure-devops) into Azure DevOps and create a [variable group](https://learn.microsoft.com/en-us/azure/devops/pipelines/library/variable-groups?view=azure-devops&tabs=yaml) for the build pipeline, changing the values accordingly to your environment. 
 
 ![Variable Groups](images/variable-groups.png)
 
@@ -71,6 +71,8 @@ $ terraform apply -var-file='variables.tfvars'
 ```
 
 Get the application url from terraform's output and open it in your browser.
+
+From now on, every push to the main branch will trigger the pipeline and deploy the application to the Virtual Machine Scale Set.
 
 ### Docs
 
