@@ -48,6 +48,10 @@ Create a service connection named ```service-connection```.
 
 ![Service Connection](images/service-connection.png)
 
+Give ```Storage Blob Data Contributor``` role to the service connection Service Principal.
+
+![Blob Contributor](images/blob-contributor.png)
+
 Create a build pipeline from the ```sample-app/azure-pipelines.yaml``` definition.
 
 ![Add Pipeline](images/add-pipeline.png)
