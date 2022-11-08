@@ -5,6 +5,8 @@
 
  The sample app is a .net framework application that runs on a Virtual Machine Scale Set. It's a Flight and Hotel Booking application that spans a transaction over two SQL Databases using [System.Transactions](https://docs.microsoft.com/en-us/dotnet/api/system.transactions?view=net-6.0) (see [MakeReservation.cs](sample-app/MSDTCApp/DataAccessRepository/MakeReservation.cs)).
 
+ __Note__: MSDTC on Managed Instance is still in private preview, for more information please check [this announcement](https://techcommunity.microsoft.com/t5/azure-sql-blog/ms-dtc-for-azure-sql-managed-instance-extending-distributed/ba-p/3576839).
+
  _This project assumes you already have an existing environment with a working SQL MI instance with DTC enabled and configured. Hotel and Flight Databases must be created using the provided .sql scripts._
 
 ### Architecture
