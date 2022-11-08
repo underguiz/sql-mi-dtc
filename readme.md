@@ -48,7 +48,7 @@ Create a service connection named ```service-connection```.
 
 ![Service Connection](images/service-connection.png)
 
-Give ```Storage Blob Data Contributor``` role to the service connection Service Principal.
+Give ```Storage Blob Data Contributor``` permission to the service connection Service Principal on the storage account from the terraform output.
 
 ![Blob Contributor](images/blob-contributor.png)
 

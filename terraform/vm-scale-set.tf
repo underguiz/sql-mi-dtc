@@ -11,7 +11,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "bookings-app" {
   location             = data.azurerm_resource_group.bookings-app.location
   computer_name_prefix = "app"
   sku                  = "Standard_D4s_v5"
-  instances            = 1
+  instances            = 2
   admin_password       = "${random_string.bookings-app-password.result}"
   admin_username       = "bookings-app"
   license_type         = "Windows_Server" 
@@ -82,8 +82,8 @@ resource "azurerm_monitor_autoscale_setting" "bookings-app" {
     name = "AutoScaling"
 
     capacity {
-      default = 1
-      minimum = 1
+      default = 2
+      minimum = 2
       maximum = 10
     }
 
