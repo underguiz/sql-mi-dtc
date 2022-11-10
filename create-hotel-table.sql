@@ -1,3 +1,5 @@
+CREATE DATABASE Hotel;
+
 CREATE TABLE [dbo].[Hotel](
 	[BookingId] [int] NULL,
 	[Name] [nvarchar](50) NULL,

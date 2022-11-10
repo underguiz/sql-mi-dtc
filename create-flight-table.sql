@@ -1,3 +1,5 @@
+CREATE DATABASE Flight;
+
 CREATE TABLE [dbo].[Flight](
 	[Flightid] [int] NULL,
 	[FlightName] [nvarchar](50) NULL,
