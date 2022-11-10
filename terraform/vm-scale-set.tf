@@ -70,6 +70,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "bookings-app" {
     })
   }
 
+  lifecycle {
+    ignore_changes = [ source_image_id ]
+  }
+
 }
 
 resource "azurerm_monitor_autoscale_setting" "bookings-app" {

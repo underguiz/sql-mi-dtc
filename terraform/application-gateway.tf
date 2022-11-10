@@ -98,8 +98,4 @@ resource "azurerm_application_gateway" "frontend" {
     priority                   = 1
   }
 
-  lifecycle {
-    ignore_changes = all
-  }
-
 }
