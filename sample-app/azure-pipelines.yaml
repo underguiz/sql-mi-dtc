@@ -1,5 +1,11 @@
 trigger:
-- main
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - sample-app
+    - bookings-app-vm-template.json
 
 pool:
   vmImage: 'windows-latest'
