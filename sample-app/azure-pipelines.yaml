@@ -64,6 +64,7 @@ steps:
       az deployment group create --resource-group $(resourceGroup) --template-file bookings-app-vm-template.json --parameters location=$(location) name=bookings-app-$(Build.BuildNumber) identity=$(managedIdentity) sqlmi_dns_suffix=$(sqlDnsSuffix) artifact_storage_account=$(artifactStorageAccount) artifact_container=$(artifactContainer)
       Write-Host "Building VM Image"
       az resource invoke-action --resource-group fleetcor --resource-type Microsoft.VirtualMachineImages/imageTemplates -n bookings-app-$(Build.BuildNumber) --action Run
+      az resource delete -g $(resourceGroup) -n bookings-app-$(Build.BuildNumber) --resource-type Microsoft.VirtualMachineImages/imageTemplates
 
 - task: AzureCLI@2
   displayName: Update VMSS Image
